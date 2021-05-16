@@ -7,10 +7,13 @@
 //
 
 import Foundation
+import Combine
 
 protocol MealRepositoryProtocol {
 
-  func getCategories(result: @escaping (Result<[CategoryModel], Error>) -> Void)
+ // func getCategories(result: @escaping (Result<[CategoryModel], Error>) -> Void)
+    
+    func getCateogires() -> AnyPublisher<[CategoryModel], Error>
 
 }
 
@@ -33,6 +36,43 @@ final class MealRepository: NSObject {
 }
 
 extension MealRepository: MealRepositoryProtocol {
+    
+    func getCateogires() -> AnyPublisher<[CategoryModel], Error> {
+        return self.locale.getCategories()
+            .flatMap { (result) -> AnyPublisher<[CategoryModel], Error> in
+                if result.isEmpty {
+                    return self.remote.getCategories()
+                        .map{
+                            CategoryMapper.mapCategoryResponsesToEntities(input: $0)
+                        }
+                        .flatMap{
+                            self.locale.addCategories(from: $0)
+                        }
+                        .filter{
+                            $0
+                        }
+                        .flatMap { _ in self.locale.getCategories()
+                            .map{
+                                CategoryMapper.mapCategoryEntitiesToDomains(input: $0)
+                            }
+                        }
+                        .eraseToAnyPublisher()
+                } else {
+                    return self.locale.getCategories()
+                        .map{
+                            CategoryMapper.mapCategoryEntitiesToDomains(input: $0)
+                        }
+                        .eraseToAnyPublisher()
+                }
+            }.eraseToAnyPublisher()
+    }
+    
+  
+    
+
+    
+    
+    /*
     func getCategories(result: @escaping (Result<[CategoryModel], Error>) -> Void) {
         locale.getCategories { (localeResponse) in
             switch localeResponse {
@@ -81,6 +121,8 @@ extension MealRepository: MealRepositoryProtocol {
             case .failure(_):
                 print("FUCK YOU")
             }
+ 
+            */
     }
     
 
@@ -102,5 +144,5 @@ extension MealRepository: MealRepositoryProtocol {
     
     
     
-}
-}
+
+

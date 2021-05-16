@@ -9,10 +9,14 @@
 import Foundation
 
 import Alamofire
+import Combine
+
 
 protocol RemoteDataSourceProtocol: class {
 
-  func getCategories(result: @escaping (Result<[CategoryResponse], URLError>) -> Void)
+ // func getCategories(result: @escaping (Result<[CategoryResponse], URLError>) -> Void)
+    
+    func getCategories() -> AnyPublisher<[CategoryResponse], Error>
   
 }
 
@@ -50,7 +54,7 @@ extension RemoteDataSource: RemoteDataSourceProtocol {
   }
  
  */
-    
+ /*
     func getCategories(
         result: @escaping (Result<[CategoryResponse], URLError>) -> Void
     ) {
@@ -67,6 +71,25 @@ extension RemoteDataSource: RemoteDataSourceProtocol {
                 result(.failure(.invalidResponse))
             }
         }
+    }
+ 
+ */
+    
+    func getCategories() -> AnyPublisher<[CategoryResponse], Error> {
+       return Future<[CategoryResponse], Error> { completion in
+         if let url = URL(string: Endpoints.Gets.categories.url) {
+           AF.request(url)
+             .validate()
+             .responseDecodable(of: CategoriesResponse.self) { response in
+               switch response.result {
+               case .success(let value):
+                 completion(.success(value.categories))
+               case .failure:
+                 completion(.failure(URLError.invalidResponse))
+               }
+             }
+         }
+       }.eraseToAnyPublisher()
     }
 
 }
