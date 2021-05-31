@@ -11,7 +11,7 @@ import Foundation
 struct API {
 
   static let baseUrl = "https://www.themealdb.com/api/json/v1/1/"
-
+  
 }
 
 protocol Endpoint {

@@ -18,7 +18,7 @@ final class Injection: NSObject {
     let remote: RemoteDataSource = RemoteDataSource.sharedInstance
     let locale: LocaleDataSource = LocaleDataSource.sharedInstance(realm)
 
-    return MealRepository.sharedInstance(locale,remote)
+    return MealRepository.sharedInstance(locale, remote)
   }
 
   func provideHome() -> HomeUseCase {
